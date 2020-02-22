@@ -59,7 +59,7 @@ public class HealthServiceImpl implements HealthService {
       // 3. 获取某一列的值,具体的可以从desc formatted table中看column mappings
       StringHDataType stringHDataType = new StringHDataType();
 
-      byte[] type = result.getValue(Bytes.toBytes("f"), Bytes.toBytes("a1"));
+      byte[] type = result.getValue(Bytes.toBytes("f"), Bytes.toBytes("a3"));
       String sType = stringHDataType.decode(type);
 
       if (sType.equals(HealthType.GREEN.getCode()) || sType.equals(HealthType.YELLOW.getCode())
