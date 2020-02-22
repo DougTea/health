@@ -63,13 +63,13 @@ public class HealthServiceImpl implements HealthService {
       String sType = stringHDataType.decode(type);
 
       if (sType.equals(HealthType.GREEN.getCode()) || sType.equals(HealthType.YELLOW.getCode())
-        || sType.equals(HealthType.RED.getCode())) {
+        || sType.equals(HealthType.RED.getCode()) || sType.equals(HealthType.NOT_FOUND.getCode())) {
         response.setType(sType);
       } else {
-        response.setType(HealthType.NOT_FOUND.getCode());
+        response.setType(HealthType.GREEN.getCode());
       }
     } catch (IOException e) {
-      response.setType(HealthType.NOT_FOUND.getCode());
+      response.setType(HealthType.GREEN.getCode());
     }
     return response;
   }
