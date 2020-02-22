@@ -35,7 +35,7 @@ public class HbaseClientConfiguration {
       configuration.set("hbase.master.kerberos.principal", hbaseClientProperties.getPrincipal());
       configuration.set("hbase.regionserver.kerberos.principal", hbaseClientProperties.getPrincipal());
       configuration.set("hbase.security.authentication", hbaseClientProperties.getAuthentication());
-      configuration.set("hadoop.security.authentication", hbaseClientProperties.getPrincipal());
+      configuration.set("hadoop.security.authentication", hbaseClientProperties.getAuthentication());
 
       UserGroupInformation.setConfiguration(configuration);
       UserGroupInformation.loginUserFromKeytab(hbaseClientProperties.getLoginUser(), hbaseClientProperties.getKeytabFile());
