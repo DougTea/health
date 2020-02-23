@@ -71,7 +71,6 @@ public class HealthServiceImpl implements HealthService {
       // 2. 获取rk
       time1 = System.currentTimeMillis();
 
-      byte[] rk = result.getRow(); // rk其实就是 new Get里面的(structValue)
       // 3. 获取某一列的值,具体的可以从desc formatted table中看column mappings
       StringHDataType stringHDataType = new StringHDataType();
 
