@@ -2,16 +2,16 @@ server:
   port: 16666
 
 logging:
-  level: debug
+  level: error
 
 hbaseconf:
-  hbase_zk_quorum: "zookeeper-bpshq-0.zookeeper-bpshq.inceptor.svc,zookeeper-bpshq-1.zookeeper-bpshq.inceptor.svc,zookeeper-bpshq-2.zookeeper-bpshq.inceptor.svc"
+  hbase_zk_quorum: "172.16.3.121"
   zk_znode_parent: "/hyperbase1"
   hbase_zk_property_client_port: "2181"
   db_name: "default"
   table_name: "dwd_suishenma_d_hyperbase"
-  decode_num: 18
+  decode_num: 21
   principal: "hbase/tos_inceptor@INCEPTOR.TDH"
-  authentication: "kerberos"
+  authentication: ""
   keytab_file: "/etc/keytabs/keytab"
   login_user: "hbase/tos_inceptor"
