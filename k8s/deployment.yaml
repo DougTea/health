@@ -1,0 +1,66 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: hbase-health
+    chart: hbase-health-1.0.0
+    heritage: Tiller
+    release: hbasehealth
+  name: hbasehealth
+  namespace: 2ca6w9n
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hbase-health
+      release: hbasehealth
+  template:
+    metadata:
+      annotations:
+        cni.networks: overlay
+      labels:
+        app: hbase-health
+        chart: hbase-health-1.0.0
+        heritage: Tiller
+        release: hbasehealth
+    spec:
+      containers:
+      - command:
+        - /bin/bash
+        - -c
+        - cd /opt/hbasehealth && ./run.sh
+        env:
+        - name: Pod_Name
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: Pod_Namespace
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        image: 172.16.3.231:5000/tmp/health:v2 
+        imagePullPolicy: Always
+        name: hbase-health
+        resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: "1"
+              memory: 1Gi
+        volumeMounts:
+        - mountPath: /etc/hbasehealth/conf/
+          name: hbase-health-conf
+      dnsPolicy: ClusterFirst
+      priorityClassName: low-priority
+      restartPolicy: Always
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: application.yml
+            path: application.yml
+          name: hbasehealth-conf
+        name: hbase-health-conf

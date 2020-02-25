@@ -1,0 +1,19 @@
+
+
+server:
+  port: 16666
+
+logging:
+  level: debug
+
+hbaseconf:
+  hbase_zk_quorum: "zookeeper-p5f7b-0.2ca6w9n.pod,zookeeper-p5f7b-1.2ca6w9n.pod,zookeeper-p5f7b-2.2ca6w9n.pod"
+  zk_znode_parent: "/hyperbase1"
+  hbase_zk_property_client_port: "2181"
+  db_name: "default"
+  table_name: "test"
+  decode_num: 18
+  principal: "hbase/tos_inceptor@INCEPTOR.TDH"
+  authentication: ""
+  keytab_file: "/etc/keytabs/keytab"
+  login_user: "hbase/tos_inceptor"
