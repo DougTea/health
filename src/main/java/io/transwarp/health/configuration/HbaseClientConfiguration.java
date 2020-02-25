@@ -29,6 +29,9 @@ public class HbaseClientConfiguration {
     configuration.set("hbase.zookeeper.quorum", hbaseClientProperties.getHbaseZkQuorum());
     configuration.set("zookeeper.znode.parent", hbaseClientProperties.getZkZnodeParent());
     configuration.set("hbase.zookeeper.property.clientPort", hbaseClientProperties.getHbaseZkPropertyClientPort());
+    configuration.set("hbase.client.retries.number", String.valueOf(hbaseClientProperties.getHbaseClientRetriesNumber()));
+    configuration.set("hbase.rpc.timeout", String.valueOf(hbaseClientProperties.getHbaseRpcTimeout()));
+
 
     if (!StringUtils.isEmpty(hbaseClientProperties.getAuthentication())) {
       // security

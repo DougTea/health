@@ -30,6 +30,9 @@ public class HealthController {
   @RequestMapping(value = "/health", method = RequestMethod.GET)
   public ApiResp<String> getHealth(@RequestParam String xm, @RequestParam String zjhm) {
     HealthResponse response = healthService.getHealth(xm, zjhm);
+    // TODO:local test monitor
+    //HealthResponse response = new HealthResponse();
+    //response.setType("00");
     List<String> data = new ArrayList<>();
     data.add(response.toString());
     return ApiRespUtils.success(data.toString());
