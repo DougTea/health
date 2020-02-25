@@ -13,23 +13,27 @@ import org.springframework.stereotype.Component;
 @Component("hbaseClientProperties")
 @ConfigurationProperties(prefix = "hbaseconf")
 public class HbaseClientProperties {
-  private String hbaseZkQuorum;
+    private String hbaseZkQuorum;
 
-  private String zkZnodeParent;
+    private String zkZnodeParent;
 
-  private String hbaseZkPropertyClientPort;
+    private String hbaseZkPropertyClientPort;
 
-  private String dbName;
+    private String dbName;
 
-  private String tableName;
+    private String tableName;
 
-  private int decodeNum;
+    private int decodeNum;
 
-  private String principal;
+    private String principal;
 
-  private String authentication;
+    private String authentication;
 
-  private String keytabFile;
+    private String keytabFile;
 
-  private String loginUser;
+    private String loginUser;
+
+    private int hbaseRpcTimeout = 5000;
+
+    private int hbaseClientRetriesNumber = 3;
 }
