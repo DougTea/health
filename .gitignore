@@ -7,3 +7,6 @@ target/
 .project
 .settings/
 .DS_Store
+*.iml
+metric/health-metric.iml
+server/health-server.iml
