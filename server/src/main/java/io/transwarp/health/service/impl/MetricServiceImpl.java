@@ -4,6 +4,7 @@ import io.transwarp.health.common.HealthConstants;
 import io.transwarp.health.common.MetricTask;
 import io.transwarp.health.configuration.properties.HbaseClientProperties;
 import io.transwarp.health.service.MetricService;
+import org.apache.avro.generic.GenericData;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
@@ -32,15 +33,14 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class MetricServiceImpl implements MetricService, SmartInitializingSingleton, DisposableBean {
 
+    private static final long BATCH_SIZE = 100;
     private static final long BATCH_MILLIS = 5000;
 
     public static final Logger LOG = LoggerFactory.getLogger(MetricServiceImpl.class);
 
-    private BlockingQueue<List<MetricTask>> queue = new LinkedBlockingQueue<>();
+    private BlockingQueue<MetricTask> queue = new LinkedBlockingQueue<>();
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private volatile boolean shutdown = false;
-    private AtomicLong lastMetricTime = new AtomicLong(0);
-    private List<MetricTask> cacheQueue = Collections.synchronizedList(new ArrayList<>());
 
     @Resource
     private HConnection hConnection;
@@ -69,26 +69,28 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
     public void addMetricTask(String id) {
         MetricTask task = new MetricTask();
         task.setId(id);
-        cacheQueue.add(task);
-        if (System.currentTimeMillis() - lastMetricTime.get() > BATCH_MILLIS) {
-            List<MetricTask> copyList = new ArrayList<>();
-            Collections.copy(copyList, cacheQueue);
-            cacheQueue.clear();
-            lastMetricTime.set(System.currentTimeMillis());
-            this.queue.add(copyList);
-        }
+        this.queue.add(task);
     }
 
     @Override
     public void consumeMetricTasks() {
         while (!shutdown) {
             try {
-                List<MetricTask> task = queue.poll(5000, TimeUnit.MILLISECONDS);
+                MetricTask task;
+                long batchStartTime = System.currentTimeMillis();
+                List<MetricTask> batch = new ArrayList<>();
+                while (System.currentTimeMillis() - batchStartTime <= BATCH_MILLIS && (task = queue.poll(BATCH_MILLIS, TimeUnit.MILLISECONDS)) != null) {
+                    batch.add(task);
+                    if (batch.size() >= BATCH_SIZE) {
+                        break;
+                    }
+                }
+
                 // put to htable
-                if (task != null) {
+                if (!batch.isEmpty()) {
                     DateFormat dateFormat = new SimpleDateFormat(HealthConstants.DATEFORMATE);
                     String tbName = hbaseClientProperties.getPvTableName() + "_" + dateFormat.format(new Date(System.currentTimeMillis()));
-                    putData(tbName, task);
+                    putData(tbName, batch);
                 }
             } catch (Exception e) {
                 LOG.error("put view access error", e);
