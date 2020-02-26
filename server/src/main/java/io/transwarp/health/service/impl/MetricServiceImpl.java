@@ -21,17 +21,25 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class MetricServiceImpl implements MetricService, SmartInitializingSingleton, DisposableBean {
 
+    private static final long BATCH_MILLIS = 5000;
+
     public static final Logger LOG = LoggerFactory.getLogger(MetricServiceImpl.class);
 
-    private BlockingQueue<MetricTask> queue = new LinkedBlockingQueue<>();
+    private BlockingQueue<List<MetricTask>> queue = new LinkedBlockingQueue<>();
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private volatile boolean shutdown = false;
+    private AtomicLong lastMetricTime = new AtomicLong(0);
+    private List<MetricTask> cacheQueue = Collections.synchronizedList(new ArrayList<>());
 
     @Resource
     private HConnection hConnection;
@@ -60,19 +68,26 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
     public void addMetricTask(String id) {
         MetricTask task = new MetricTask();
         task.setId(id);
-        queue.add(task);
+        cacheQueue.add(task);
+        if (System.currentTimeMillis() - lastMetricTime.get() > BATCH_MILLIS) {
+            List<MetricTask> copyList = new ArrayList<>();
+            Collections.copy(copyList, cacheQueue);
+            cacheQueue.clear();
+            lastMetricTime.set(System.currentTimeMillis());
+            this.queue.add(copyList);
+        }
     }
 
     @Override
     public void consumeMetricTasks() {
         while (!shutdown) {
             try {
-                MetricTask task = queue.poll(5000, TimeUnit.MILLISECONDS);
+                List<MetricTask> task = queue.poll(5000, TimeUnit.MILLISECONDS);
                 // put to htable
                 if (task != null) {
                     DateFormat dateFormat = new SimpleDateFormat("yyyy_mm_dd");
                     String tbName = hbaseClientProperties.getPvTableName() + "_" + dateFormat.format(new Date(System.currentTimeMillis()));
-                    putData(tbName, task.getId());
+                    putData(tbName, task);
                 }
             } catch (Exception e) {
                 LOG.error("put view access error", e);
@@ -80,44 +95,22 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
         }
     }
 
-    private void createTable(String tableName) throws Exception {
-        HBaseAdmin admin = new HBaseAdmin(hConfigration);
-        HTableDescriptor htds = new HTableDescriptor(tableName);
-        HColumnDescriptor h = new HColumnDescriptor(hbaseClientProperties.getCfName());
-        htds.addFamily(h);
-        boolean tableExists1 = admin.tableExists(Bytes.toBytes(tableName));
-        LOG.info(tableExists1 ? "表已存在" : "表不存在");
-        admin.createTable(htds);
-        boolean tableExists = admin.tableExists(Bytes.toBytes(tableName));
-        LOG.info(tableExists ? "创建表成功" : "创建失败");
-    }
 
-    public void dropTable(String tableName) throws Exception {
-        HBaseAdmin admin = new HBaseAdmin(hConfigration);
-        admin.disableTable(tableName);
-        admin.deleteTable(tableName);
-        boolean tableExists1 = admin.tableExists(Bytes.toBytes(tableName));
-        System.out.println(tableExists1 ? "表未删除" : "表已删除");
-    }
-
-    public void putData(String tableName, String zjhm) throws Exception {
+    public void putData(String tableName, List<MetricTask> taskList) throws Exception {
 
         TableName tName = TableName.valueOf(hbaseClientProperties.getDbName(), tableName);
 
         HTable hTable = new HTable(tName, hConnection);
-        Put put = new Put(Bytes.toBytes(zjhm));
-        put.add(Bytes.toBytes(hbaseClientProperties.getCfName()), Bytes.toBytes(hbaseClientProperties.getCqName()), Bytes.toBytes(""));
-        hTable.setAutoFlush(true);
-        try {
-            hTable.put(put);
-            System.out.println("插入成功");
-        } catch (Exception e) {
-            if (e.getCause() instanceof TableNotFoundException) {
-                createTable(tableName);
-                putData(tableName, zjhm);
-            } else {
+        hTable.setAutoFlush(false);
+        for (int i = 0; i < taskList.size(); i++) {
+            Put put = new Put(Bytes.toBytes(taskList.get(i).getId()));
+            put.add(Bytes.toBytes(hbaseClientProperties.getCfName()), Bytes.toBytes(hbaseClientProperties.getCqName()), Bytes.toBytes(""));
+            try {
+                hTable.put(put);
+            } catch (Exception e) {
                 throw e;
             }
         }
+        hTable.flushCommits();
     }
 }
