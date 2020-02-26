@@ -1,0 +1,71 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: hbase-health-pv
+    release: hbasehealth-pv
+  name: hbasehealth-pv
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hbase-health-pv
+      release: hbasehealth-pv
+  template:
+    metadata:
+      annotations:
+        cni.networks: overlay
+      labels:
+        app: hbase-health-pv
+        release: hbasehealth-pv
+    spec:
+      containers:
+        - command:
+            - /bin/bash
+            - -c
+            - cd /opt/hbasehealth && ./run.sh
+          env:
+            - name: Pod_Name
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: Pod_Namespace
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          image: 172.16.3.231:5000/tmp/health-metric:v1
+          imagePullPolicy: Always
+          name: hbase-health
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthCheck
+              port: 16666
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: "1"
+              memory: 4Gi
+            requests:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - mountPath: /etc/hbasehealth/conf/
+              name: hbase-health-conf
+      dnsPolicy: ClusterFirst
+      priorityClassName: low-priority
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            defaultMode: 420
+            items:
+              - key: application.yml
+                path: application.yml
+            name: hbasehealth-conf
+          name: hbase-health-conf

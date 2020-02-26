@@ -40,7 +40,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: 172.16.3.231:5000/tmp/health:v2 
+        image: 172.16.3.231:5000/tmp/health:v3
         imagePullPolicy: Always
         name: hbase-health
         readinessProbe:
