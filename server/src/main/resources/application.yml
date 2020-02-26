@@ -1,0 +1,17 @@
+server:
+  port: 16666
+
+logging:
+  level: error
+
+hbaseconf:
+  hbase_zk_quorum: "172.16.3.121"
+  zk_znode_parent: "/hyperbase1"
+  hbase_zk_property_client_port: "2181"
+  db_name: "default"
+  table_name: "dwd_suishenma_d_hyperbase"
+  decode_num: 21
+  principal: "hbase/tos_inceptor@INCEPTOR.TDH"
+  authentication: ""
+  keytab_file: "/etc/keytabs/keytab"
+  login_user: "hbase/tos_inceptor"

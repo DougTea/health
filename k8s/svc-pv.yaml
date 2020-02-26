@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: hbase-health
+    chart: hbase-health-1.0.0
+    heritage: Tiller
+    release: hbasehealth
+  name: hbasehealth-pv-svc
+spec:
+  type: NodePort
+  ports:
+   - port: 16666
+     name: web
+  selector:
+     app: hbase-health-pv
+     release: hbasehealth-pv
