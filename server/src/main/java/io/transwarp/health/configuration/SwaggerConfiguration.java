@@ -16,21 +16,21 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 @Configuration
 public class SwaggerConfiguration {
-  @Bean
-  public Docket swaggerPlugins() {
-    return new Docket(DocumentationType.SWAGGER_2)
-      .apiInfo(apiInfo())
-      .select()
-      .apis(RequestHandlerSelectors.basePackage("io.transwarp.health.controller"))
-      .paths(PathSelectors.regex("/.*"))
-      .build();
-  }
+    @Bean
+    public Docket swaggerPlugins() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("io.transwarp.health.controller"))
+                .paths(PathSelectors.regex("/.*"))
+                .build();
+    }
 
-  private ApiInfo apiInfo() {
-    return new ApiInfoBuilder()
-      .title("Health API Document")
-      .description("Health")
-      .version("0.0.1")
-      .build();
-  }
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("Health API Document")
+                .description("Health")
+                .version("0.0.1")
+                .build();
+    }
 }

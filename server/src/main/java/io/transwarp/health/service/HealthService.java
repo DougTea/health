@@ -8,5 +8,5 @@ import java.io.IOException;
  * Created by Shannon on 2020/2/23.
  */
 public interface HealthService {
-  HealthResponse getHealth(String xm, String zjxm);
+    HealthResponse getHealth(String xm, String zjxm);
 }

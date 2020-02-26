@@ -36,4 +36,10 @@ public class HbaseClientProperties {
     private int hbaseRpcTimeout = 5000;
 
     private int hbaseClientRetriesNumber = 3;
+
+    private String pvTableName = "health_view_collect";
+
+    private String cfName = "f";
+
+    private String cqName = "c";
 }

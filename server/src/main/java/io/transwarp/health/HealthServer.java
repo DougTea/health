@@ -13,11 +13,11 @@ import org.springframework.context.annotation.ComponentScan;
  */
 @SpringBootApplication
 @ComponentScan("io.transwarp.health")
-@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
 @EnablePrometheusEndpoint
 @EnableSpringBootMetricsCollector
 public class HealthServer {
-  public static void main(String[] args) {
-    SpringApplication.run(HealthServer.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(HealthServer.class, args);
+    }
 }
