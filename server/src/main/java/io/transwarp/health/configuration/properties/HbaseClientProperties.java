@@ -37,7 +37,7 @@ public class HbaseClientProperties {
 
     private int hbaseClientRetriesNumber = 3;
 
-    private String pvTableName = "health_view_collect";
+    private String pvTableName = "hbbase_health_metric";
 
     private String cfName = "f";
 

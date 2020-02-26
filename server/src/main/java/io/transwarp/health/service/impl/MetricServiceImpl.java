@@ -16,10 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.*;
 
 @Service
@@ -56,7 +58,9 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
 
     @Override
     public void addMetricTask(String id) {
-        queue.add(new MetricTask());
+        MetricTask task = new MetricTask();
+        task.setId(id);
+        queue.add(task);
     }
 
     @Override
@@ -66,7 +70,9 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
                 MetricTask task = queue.poll(5000, TimeUnit.MILLISECONDS);
                 // put to htable
                 if (task != null) {
-                    putData(hbaseClientProperties.getPvTableName(), task.getId());
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy_mm_dd");
+                    String tbName = hbaseClientProperties.getPvTableName() + "_" + dateFormat.format(new Date(System.currentTimeMillis()));
+                    putData(tbName, task.getId());
                 }
             } catch (Exception e) {
                 LOG.error("put view access error", e);
@@ -95,7 +101,8 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
     }
 
     public void putData(String tableName, String zjhm) throws Exception {
-        TableName tName = TableName.valueOf(hbaseClientProperties.getDbName(), hbaseClientProperties.getPvTableName());
+
+        TableName tName = TableName.valueOf(hbaseClientProperties.getDbName(), tableName);
 
         HTable hTable = new HTable(tName, hConnection);
         Put put = new Put(Bytes.toBytes(zjhm));
