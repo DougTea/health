@@ -1,5 +1,6 @@
 package io.transwarp.health.service.impl;
 
+import io.transwarp.health.common.HealthConstants;
 import io.transwarp.health.common.MetricTask;
 import io.transwarp.health.configuration.properties.HbaseClientProperties;
 import io.transwarp.health.service.MetricService;
@@ -85,7 +86,7 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
                 List<MetricTask> task = queue.poll(5000, TimeUnit.MILLISECONDS);
                 // put to htable
                 if (task != null) {
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy_mm_dd");
+                    DateFormat dateFormat = new SimpleDateFormat(HealthConstants.DATEFORMATE);
                     String tbName = hbaseClientProperties.getPvTableName() + "_" + dateFormat.format(new Date(System.currentTimeMillis()));
                     putData(tbName, task);
                 }
