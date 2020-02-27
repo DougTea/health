@@ -8,6 +8,8 @@ import io.transwarp.health.common.ApiRespUtils;
 import io.transwarp.health.common.HealthConstants;
 import io.transwarp.health.common.Value;
 import io.transwarp.health.service.HealthService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -21,34 +23,44 @@ import java.util.List;
 @RestController
 @RequestMapping("/" + HealthConstants.VERSION)
 public class HealthController {
+    public static final Logger LOG = LoggerFactory.getLogger(HealthController.class);
+
     @Resource
     HealthService healthService;
 
     @ApiOperation("Get Health")
-    @RequestMapping(value = "/health",method = RequestMethod.GET)
+    @RequestMapping(value = "/health", method = RequestMethod.GET)
     public ApiResp<String> getHealth(@RequestParam String xm, @RequestParam String zjhm) {
-        return  getHealthInfo(xm,zjhm);
+        HealthResponse response;
+        List<String> data = new ArrayList<>();
+        try {
+            response = healthService.getHealth(xm, zjhm);
+            data.add(response.toString());
+        } catch (Throwable throwable) {
+            return ApiRespUtils.response("1", throwable.getMessage(), data.toString());
+        }
+        return ApiRespUtils.success(data.toString());
     }
 
     @ApiOperation("Get Health")
-    @RequestMapping(value = "/health",method = RequestMethod.POST)
+    @RequestMapping(value = "/health", method = RequestMethod.POST)
     public ApiResp<String> getHealth(@RequestBody Value value) {
-        return  getHealthInfo(value.getXm(),value.getZjhm());
-    }
-
-    private ApiResp<String> getHealthInfo(String username,String code){
         HealthResponse response;
         List<String> data = new ArrayList<>();
-        try{
-            response = healthService.getHealth(username, code);
-            data.add(response.toString());
-        }catch (Throwable throwable){
-            return ApiRespUtils.response("1",throwable.getMessage(),data.toString());
+
+        try {
+            response = healthService.getHealthNot00IfNotExist(value.getXm(), value.getZjhm());
+            if(response.getType()!=null){
+                data.add(response.toString());
+            }
+            LOG.info("xm: {}, zjhm: {}, response: {}", value.getXm(), value.getZjhm(), response.toString());
+        } catch (Throwable throwable) {
+            LOG.info("xm: {}, zjhm: {}, response: {}", value.getXm(), value.getZjhm(), throwable.getMessage());
+            return ApiRespUtils.response("1", throwable.getMessage(), data.toString());
         }
-        // TODO:local test monitor
-        //HealthResponse response = new HealthResponse();
-        //response.setType("00");
 
         return ApiRespUtils.success(data.toString());
+
     }
+
 }
