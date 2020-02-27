@@ -6,11 +6,9 @@ import io.transwarp.health.api.ApiResp;
 import io.transwarp.health.api.HealthResponse;
 import io.transwarp.health.common.ApiRespUtils;
 import io.transwarp.health.common.HealthConstants;
+import io.transwarp.health.common.Value;
 import io.transwarp.health.service.HealthService;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -28,12 +26,18 @@ public class HealthController {
 
     @ApiOperation("Get Health")
     @RequestMapping(value = "/health")
-    public ApiResp<String> getHealth(@RequestParam String xm, @RequestParam String zjhm) {
+    public ApiResp<String> getHealth(@RequestParam(required = false) String xm, @RequestParam(required = false) String zjhm, @RequestBody(required = false) Value value) {
         HealthResponse response;
         List<String> data = new ArrayList<>();
+        String username=xm;
+        String code=zjhm;
+        if(value!=null){
+            username=value.getXm();
+            code=value.getZjhm();
+        }
 
         try{
-            response = healthService.getHealth(xm, zjhm);
+            response = healthService.getHealth(username, code);
             data.add(response.toString());
         }catch (Throwable throwable){
             return ApiRespUtils.response("1",throwable.getMessage(),data.toString());
