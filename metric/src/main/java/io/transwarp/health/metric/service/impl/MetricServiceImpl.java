@@ -106,15 +106,16 @@ public class MetricServiceImpl implements MetricService {
     }
 
     public void createTable(String tableName) throws Exception {
+        String dbTableName = hbaseClientProperties.getDbName() + ":" + tableName;
         HBaseAdmin admin = new HBaseAdmin(hConfigration);
-        HTableDescriptor htds = new HTableDescriptor(tableName);
+        HTableDescriptor htds = new HTableDescriptor(dbTableName);
         HColumnDescriptor h = new HColumnDescriptor(hbaseClientProperties.getCfName());
         htds.addFamily(h);
-        boolean tableExists1 = admin.tableExists(Bytes.toBytes(tableName));
+        boolean tableExists1 = admin.tableExists(Bytes.toBytes(dbTableName));
         System.out.println(tableExists1 ? "表已存在" : "表不存在");
         try {
             admin.createTable(htds);
-            LOG.info("create table" + tableName);
+            LOG.info("create table" + dbTableName);
         } catch (TableExistsException e) {
             // skip
             LOG.error("Table exists, skip.", e);
