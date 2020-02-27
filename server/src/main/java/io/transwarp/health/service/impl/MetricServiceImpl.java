@@ -4,12 +4,7 @@ import io.transwarp.health.common.HealthConstants;
 import io.transwarp.health.common.MetricTask;
 import io.transwarp.health.configuration.properties.HbaseClientProperties;
 import io.transwarp.health.service.MetricService;
-import org.apache.avro.generic.GenericData;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.TableNotFoundException;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
@@ -24,21 +19,20 @@ import javax.annotation.Resource;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class MetricServiceImpl implements MetricService, SmartInitializingSingleton, DisposableBean {
 
     private static final long BATCH_SIZE = 100;
     private static final long BATCH_MILLIS = 5000;
+    private static final int MAX_QUEUE_SIZE = 100000;
 
     public static final Logger LOG = LoggerFactory.getLogger(MetricServiceImpl.class);
 
-    private BlockingQueue<MetricTask> queue = new LinkedBlockingQueue<>();
+    private BlockingQueue<MetricTask> queue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private volatile boolean shutdown = false;
 
@@ -69,7 +63,12 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
     public void addMetricTask(String id) {
         MetricTask task = new MetricTask();
         task.setId(id);
-        this.queue.add(task);
+        try {
+            this.queue.add(task);
+        } catch (Exception e){
+            // queue is full ignore it
+            LOG.error("blocking queue is full: e", e);
+        }
     }
 
     @Override
@@ -91,6 +90,7 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
                     DateFormat dateFormat = new SimpleDateFormat(HealthConstants.DATEFORMATE);
                     String tbName = hbaseClientProperties.getPvTableName() + "_" + dateFormat.format(new Date(System.currentTimeMillis()));
                     putData(tbName, batch);
+                    LOG.debug("put data success");
                 }
             } catch (Exception e) {
                 LOG.error("put view access error", e);

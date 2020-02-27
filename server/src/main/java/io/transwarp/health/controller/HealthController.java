@@ -50,12 +50,12 @@ public class HealthController {
 
         try {
             response = healthService.getHealthNot00IfNotExist(value.getXm(), value.getZjhm());
-            if(response.getType()!=null){
+            if (response.getType() != null) {
                 data.add(response.toString());
             }
-            LOG.info("xm: {}, zjhm: {}, response: {}", value.getXm(), value.getZjhm(), response.toString());
+            //LOG.info("xm: {}, zjhm: {}, response: {}", value.getXm(), value.getZjhm(), response.toString());
         } catch (Throwable throwable) {
-            LOG.info("xm: {}, zjhm: {}, response: {}", value.getXm(), value.getZjhm(), throwable.getMessage());
+            //LOG.info("xm: {}, zjhm: {}, response: {}", value.getXm(), value.getZjhm(), throwable.getMessage());
             return ApiRespUtils.response("1", throwable.getMessage(), data.toString());
         }
 
