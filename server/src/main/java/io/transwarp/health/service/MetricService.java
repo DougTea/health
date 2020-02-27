@@ -8,4 +8,6 @@ public interface MetricService {
 
     void consumeMetricTasks();
 
+    void stopPvInsert();
+
 }

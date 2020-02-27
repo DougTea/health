@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class MetricServiceImpl implements MetricService, SmartInitializingSingleton, DisposableBean {
@@ -33,6 +34,7 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
     public static final Logger LOG = LoggerFactory.getLogger(MetricServiceImpl.class);
 
     private BlockingQueue<MetricTask> queue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
+    private AtomicLong ignorCount = new AtomicLong(0);
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private volatile boolean shutdown = false;
 
@@ -67,7 +69,11 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
             this.queue.add(task);
         } catch (Exception e){
             // queue is full ignore it
-            LOG.error("blocking queue is full: e", e);
+            ignorCount.incrementAndGet();
+            if (ignorCount.get() /1000 == 0){
+                LOG.info("ignore pv put 1000");
+                ignorCount.set(0);
+            }
         }
     }
 
@@ -96,6 +102,12 @@ public class MetricServiceImpl implements MetricService, SmartInitializingSingle
                 LOG.error("put view access error", e);
             }
         }
+    }
+
+    @Override
+    public void stopPvInsert() {
+        executor.shutdownNow();
+        shutdown = true;
     }
 
 
