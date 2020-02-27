@@ -2,6 +2,7 @@ package io.transwarp.health.monitoring;
 
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
+import io.prometheus.client.Histogram;
 import io.prometheus.client.Summary;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -33,6 +34,13 @@ public class RequestStatsInterceptor extends HandlerInterceptorAdapter {
             .help("Request completed time in milliseconds")
             .register();
 
+    private final Histogram responseTimeHistogram = Histogram.build()
+            .name("http_response_time_millis_histogram")
+            .labelNames("method", "handler", "status")
+            .buckets(1.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0, 5000.0)
+            .help("Response time distribution in milliseconds")
+            .register();
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         inflightRequests.inc();
@@ -56,6 +64,10 @@ public class RequestStatsInterceptor extends HandlerInterceptorAdapter {
             long completedTime = System.currentTimeMillis() - timingAttr;
             responseTimeInMs.labels(request.getMethod(), handlerLabel,
                     Integer.toString(response.getStatus())).observe(completedTime);
+            responseTimeHistogram.labels(request.getMethod(), handlerLabel,
+                    Integer.toString(response.getStatus())).observe(completedTime);
+
+
         }
     }
 }
