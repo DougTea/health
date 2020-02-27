@@ -27,14 +27,21 @@ public class HealthController {
     HealthService healthService;
 
     @ApiOperation("Get Health")
-    @RequestMapping(value = "/health", method = RequestMethod.GET)
+    @RequestMapping(value = "/health")
     public ApiResp<String> getHealth(@RequestParam String xm, @RequestParam String zjhm) {
-        HealthResponse response = healthService.getHealth(xm, zjhm);
+        HealthResponse response;
+        List<String> data = new ArrayList<>();
+
+        try{
+            response = healthService.getHealth(xm, zjhm);
+            data.add(response.toString());
+        }catch (Throwable throwable){
+            return ApiRespUtils.response("1",throwable.getMessage(),data.toString());
+        }
         // TODO:local test monitor
         //HealthResponse response = new HealthResponse();
         //response.setType("00");
-        List<String> data = new ArrayList<>();
-        data.add(response.toString());
+
         return ApiRespUtils.success(data.toString());
     }
 }
