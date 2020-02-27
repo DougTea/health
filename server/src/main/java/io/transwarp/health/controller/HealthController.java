@@ -25,17 +25,20 @@ public class HealthController {
     HealthService healthService;
 
     @ApiOperation("Get Health")
-    @RequestMapping(value = "/health")
-    public ApiResp<String> getHealth(@RequestParam(required = false) String xm, @RequestParam(required = false) String zjhm, @RequestBody(required = false) Value value) {
+    @RequestMapping(value = "/health",method = RequestMethod.GET)
+    public ApiResp<String> getHealth(@RequestParam String xm, @RequestParam String zjhm) {
+        return  getHealthInfo(xm,zjhm);
+    }
+
+    @ApiOperation("Get Health")
+    @RequestMapping(value = "/health",method = RequestMethod.POST)
+    public ApiResp<String> getHealth(@RequestBody Value value) {
+        return  getHealthInfo(value.getXm(),value.getZjhm());
+    }
+
+    private ApiResp<String> getHealthInfo(String username,String code){
         HealthResponse response;
         List<String> data = new ArrayList<>();
-        String username=xm;
-        String code=zjhm;
-        if(value!=null){
-            username=value.getXm();
-            code=value.getZjhm();
-        }
-
         try{
             response = healthService.getHealth(username, code);
             data.add(response.toString());
