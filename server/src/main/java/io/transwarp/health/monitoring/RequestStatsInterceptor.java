@@ -27,6 +27,9 @@ public class RequestStatsInterceptor extends HandlerInterceptorAdapter {
     private final Summary responseTimeInMs = Summary.build()
             .name("http_response_time_millis")
             .labelNames("method", "handler", "status")
+            .quantile(0.5, 0.05)
+            .quantile(0.9, 0.01)
+            .quantile(0.99, 0.001)
             .help("Request completed time in milliseconds")
             .register();
 
